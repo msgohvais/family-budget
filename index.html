@@ -78,7 +78,9 @@ select option{color:#000}
 <script>
 const CSV_SEED = "";
 const WALLETS = ['Наличные','ОЗОН Рита','Альфа Никита','Сбер Никита'];
-const WALLET_TARGET_25_10 = {'Наличные':0,'ОЗОН Рита':8286,'Альфа Никита':1332.75,'Сбер Никита':0};
+// Балансы кошельков на 29.10 (как в BudgetOK). Стартовый остаток пересчитывается от них при каждом импорте.
+const WALLET_TARGET_25_10 = {'Наличные':0,'ОЗОН Рита':5873,'Альфа Никита':-3013.25,'Сбер Никита':0};
+const WALLET_CUTOFF = '2026-10-29';
 const CATS = ['Все для дома','Продукты','Рестораны','Развлечения','Подписки и ЖКХ','Здоровье','Машина','Красота','Бейлик','На работу'];
 const DEBT_CAT = 'Долг (возврат)';
 const ALL_EXP = [...CATS, DEBT_CAT];
@@ -189,6 +191,7 @@ async function pullCloud(){
   });
   const s = JSON.parse(cfg);
   S = {...S, ...s, txs};
+  recomputeOpening();
   try { localStorage.setItem(STORE, JSON.stringify(S)); } catch(e){}
   return true;
 }
@@ -252,7 +255,7 @@ function netFor(wallet, txs, untilISO){
 function seed(){
   const txs = fromCSV(parseCSV(CSV_SEED));
   const opening = {};
-  WALLETS.forEach(w => { opening[w] = (WALLET_TARGET_25_10[w]||0) - netFor(w, txs, '2026-10-25'); });
+  WALLETS.forEach(w => { opening[w] = (WALLET_TARGET_25_10[w]||0) - netFor(w, txs, WALLET_CUTOFF); });
   return { v:2, txs, opening, plan: JSON.parse(JSON.stringify(PLAN_DEFAULT)), goals: JSON.parse(JSON.stringify(GOALS_DEFAULT)), debts: [], debtPerPayment: 15000 };
 }
 
@@ -273,6 +276,12 @@ function planInc(m){ return (S.plan[m] && S.plan[m].inc) || {}; }
 function planExp(m){ return (S.plan[m] && S.plan[m].exp) || {}; }
 function sum(o){ return Object.values(o).reduce((a,b)=>a+(b||0),0); }
 function balance(w){ return (S.opening[w]||0) + netFor(w, S.txs); }
+// Стартовый остаток = баланс на 29.10 минус операции до 29.10 включительно.
+// Так импорт любой выгрузки не задваивает суммы, а балансы совпадают с BudgetOK.
+function recomputeOpening(){
+  S.opening = S.opening || {};
+  WALLETS.forEach(w => { S.opening[w] = (WALLET_TARGET_25_10[w]||0) - netFor(w, S.txs, WALLET_CUTOFF); });
+}
 function dayDiff(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
 // Средний расход в день за период факта и расход за сегодня
 function dailyStats(m, spent){
@@ -646,6 +655,7 @@ function importCSV(file){
     const have = new Set(S.txs.map(key));
     let added=0;
     incoming.forEach(t => { if (!have.has(key(t))) { t.id = uid(); S.txs.push(t); added++; } });
+    recomputeOpening();
     save(); render(); toast(`Добавлено: ${added}`);
   };
   r.readAsText(file, 'utf-8');
@@ -662,6 +672,7 @@ function importCSV(file){
   }
   if (!S.debts) S.debts = [];
   if (!S.debtPerPayment) S.debtPerPayment = 15000;
+  recomputeOpening();
   render();
   initCloud();
 })();
