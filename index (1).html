@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Семейный бюджет</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(120% 60% at 90% -10%,#B5400F 0%,#3A1405 45%,#0A0604 80%) fixed;min-height:100%}
+#app{max-width:430px;margin:0 auto;min-height:100%;position:relative;padding:calc(env(safe-area-inset-top) + 18px) 14px 110px}
+h1{font-size:34px;font-weight:900;letter-spacing:-1px;margin:6px 0 10px}
+.eyebrow{font-size:11px;letter-spacing:1.2px;color:#FFB98F;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card{border-radius:20px;border:1.5px solid #FF7A3D;box-shadow:0 0 16px rgba(255,122,61,.3);background:rgba(10,6,4,.6);padding:14px;margin-top:12px}
+.card.blue{border-color:#4DA3FF;box-shadow:0 0 14px rgba(77,163,255,.3)}
+.card.pink{border-color:#F25CA0;box-shadow:0 0 14px rgba(242,92,160,.3)}
+.card.gold{border-color:#FFC24A;box-shadow:0 0 14px rgba(255,194,74,.3)}
+.sec{font-size:13px;font-weight:800;margin:16px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.sec small{font-size:11px;color:#B9AEA4;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.tile{border-radius:14px;padding:8px 9px;color:#120806}
+.tile b{display:block;font-size:13px;font-weight:900;margin-top:2px}
+.tile .pl{font-size:10px;font-weight:700;border-top:1px solid rgba(18,8,6,.35);margin-top:3px;padding-top:2px}
+.chip{border-radius:14px;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);padding:8px 10px;user-select:none;touch-action:none;cursor:grab}
+.chip small{display:block;font-size:10px;color:#FFD9BF;font-weight:700}
+.chip b{font-size:14px;font-weight:900}
+.chip.inc{background:#F25CA0;color:#120806;border-color:#F25CA0}
+.chip.inc2{background:#4DA3FF;color:#120806;border-color:#4DA3FF}
+.chip.debt{border:1.5px dashed #FF7A3D;color:#FFB98F}
+.chip.dropover{outline:2px solid #FFC24A;outline-offset:2px}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:6px;overflow:hidden}
+.bar div{height:100%;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{padding:7px 4px;text-align:right;border-top:1px solid rgba(255,255,255,.08);white-space:nowrap}
+th{color:#FFD9BF;font-weight:800;border-top:none;font-size:11px}
+td.l,th.l{text-align:left}
+td input{width:76px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;padding:5px 6px;font-size:12px;text-align:right}
+.pos{color:#FF4D2E;font-weight:800}
+.neg{color:#4ADE80;font-weight:800}
+.btn{border:none;border-radius:16px;padding:12px 14px;font-weight:800;font-size:14px;color:#120806;background:linear-gradient(90deg,#FF7A3D,#FFC24A);cursor:pointer}
+.btn.ghost{background:transparent;color:#FFD9BF;border:1.5px solid rgba(255,255,255,.25)}
+.btn.small{padding:6px 10px;font-size:12px;border-radius:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.muted{color:#B9AEA4;font-size:12px}
+.tx{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px;gap:8px}
+.tx span.s{font-size:11px;color:#B9AEA4;display:block}
+.dot{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;vertical-align:1px}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 10px);width:min(406px,calc(100% - 24px));height:64px;border-radius:24px;background:rgba(20,14,11,.94);border:1.5px solid #FF7A3D;box-shadow:0 0 14px rgba(255,122,61,.3);display:flex;justify-content:space-around;align-items:center;z-index:20}
+nav button{background:none;border:none;color:#8A8078;font-size:11px;font-weight:700;padding:8px 4px;flex:1;font-family:inherit}
+nav button.on{color:#FF7A3D}
+.switch{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:8px}
+.switch button{width:36px;height:36px;border-radius:12px;border:1.5px solid rgba(255,255,255,.25);background:none;color:#fff;font-size:18px;font-weight:800}
+#ghost{position:fixed;pointer-events:none;z-index:50;width:56px;height:56px;border-radius:28px;background:radial-gradient(circle at 35% 30%,#FFD9BF,#FF7A3D);color:#120806;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(0,0,0,.5);transform:translate(-50%,-50%);opacity:.92}
+#sheetWrap{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:none}
+#sheet{position:absolute;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;border-radius:28px 28px 0 0;background:#141110;border-top:1.5px solid #FF7A3D;padding:12px 16px calc(env(safe-area-inset-bottom) + 16px);box-shadow:0 -10px 30px rgba(255,122,61,.25);max-height:92%;overflow:auto}
+.key{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.key button{padding:12px 0;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;font-size:20px;font-weight:700;font-family:inherit}
+.key button.op{color:#FF7A3D}
+.swipe{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.swipe::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;padding:0 14px;box-sizing:border-box}
+select,input[type=text],input[type=date],input[type=number]{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;color:#fff;padding:10px;font-size:14px;font-family:inherit;width:100%}
+select option{color:#000}
+.hint{font-size:11px;color:#FFD9BF;margin-top:6px;line-height:1.4}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"></div>
+</div>
+<nav id="nav"></nav>
+<div id="sheetWrap"><div id="sheet"></div></div>
+<div id="ghost" style="display:none"></div>
+
+<script>
+const CSV_SEED = "";
+const WALLETS = ['Наличные','ОЗОН Рита','Альфа Никита','Сбер Никита'];
+const WALLET_TARGET_25_10 = {'Наличные':0,'ОЗОН Рита':8286,'Альфа Никита':1332.75,'Сбер Никита':0};
+const CATS = ['Все для дома','Продукты','Рестораны','Развлечения','Подписки и ЖКХ','Здоровье','Машина','Красота','Бейлик','На работу'];
+const DEBT_CAT = 'Долг (возврат)';
+const ALL_EXP = [...CATS, DEBT_CAT];
+const COLORS = ['#FF7A3D','#F25CA0','#4DA3FF','#FFC24A','#FFB98F','#FFD9BF','#C9557F','#7FB8FF','#B5402A','#8A8078','#FFE3CC'];
+const WALLET_MAP = {'Наличные':'Наличные','ОЗОН Р':'ОЗОН Рита','Альфа Н':'Альфа Никита','Сбербанк Н':'Сбер Никита'};
+const CAT_MAP = {'Все для дома':'Все для дома','Продукты':'Продукты','Еда':'Рестораны','Развлечения':'Развлечения','Подписки и ЖКХ':'Подписки и ЖКХ','Здоровье':'Здоровье','Авто':'Машина','Красота':'Красота','Бейлик':'Бейлик','НА РАБОТУ':'На работу'};
+// План с ноября: доходы Рита 75 000 / Никита 150 000; расходы по статьям — из плана на картинках (кафе снято в ноябре)
+const INC_PLAN = {'Рита':75000,'Никита':150000};
+const NOV_EXP = {'Все для дома':3500,'Продукты':28000,'Рестораны':0,'Развлечения':5000,'Подписки и ЖКХ':10500,'Здоровье':0,'Машина':28600,'Красота':4000,'Бейлик':6000,'На работу':0,'Долг (возврат)':0};
+const NORM_EXP = {'Все для дома':3000,'Продукты':30000,'Рестораны':8000,'Развлечения':6000,'Подписки и ЖКХ':10500,'Здоровье':3000,'Машина':29600,'Красота':4000,'Бейлик':7000,'На работу':0,'Долг (возврат)':0};
+const PARK_EXP = {...NORM_EXP, 'Машина':42600}; // + парковка 13 000 в чётные месяцы (25-го)
+const PLAN_DEFAULT = {
+  '2026-10': {start:'2026-10-01', exp:{}, inc:{'Рита':75000,'Никита':135000}},
+  '2026-11': {start:'2026-11-01', exp:{...NOV_EXP}, inc:{...INC_PLAN}},
+  '2026-12': {start:'2026-12-01', exp:{...PARK_EXP}, inc:{...INC_PLAN}},
+  '2027-01': {start:'2027-01-01', exp:{...NORM_EXP}, inc:{...INC_PLAN}},
+  '2027-02': {start:'2027-02-01', exp:{...PARK_EXP}, inc:{...INC_PLAN}},
+  '2027-03': {start:'2027-03-01', exp:{...NORM_EXP}, inc:{...INC_PLAN}},
+  '2027-04': {start:'2027-04-01', exp:{...PARK_EXP}, inc:{...INC_PLAN}}
+};
+const GOALS_DEFAULT = [
+  {id:'g1',name:'Подушка',target:200000,saved:0,color:'#4DA3FF'},
+  {id:'g2',name:'Отпуск',target:100000,saved:0,color:'#FF7A3D'},
+  {id:'g3',name:'Ремонт',target:100000,saved:0,color:'#FFC24A'},
+  {id:'g4',name:'Пекин (осталось)',target:43700,saved:0,color:'#F25CA0'}
+];
+const RU_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const STORE = 'family-budget-v1';
+
+// ---------- helpers ----------
+const fmt = n => Math.round(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mKey = d => d.slice(0,7);
+const monthStart = m => m+'-01';
+const monthEnd = m => { const [y,mo]=m.split('-').map(Number); const last=new Date(y,mo,0).getDate(); return m+'-'+String(last).padStart(2,'0'); };
+const addMonth = (m,k) => { const [y,mo]=m.split('-').map(Number); const d=new Date(y,mo-1+k,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); };
+const todayISO = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const monthLabel = m => { const [y,mo]=m.split('-').map(Number); return RU_MONTHS[mo-1]+' '+y; };
+
+// ---------- state ----------
+let S = null;
+let UI = { tab:'home', month: todayISO().slice(0,7), planMonth: null, statsMonth: null };
+function load(){ try { const raw = localStorage.getItem(STORE); return raw ? JSON.parse(raw) : null; } catch(e){ return null; } }
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); } catch(e){} syncPush(); }
+
+// ---------- облако: вход через Google, данные в таблице самого пользователя ----------
+// Вставьте сюда Client ID из Google Cloud (см. README). Без него работает только локально.
+const GOOGLE_CLIENT_ID = '280111924936-lfkm9omvtu2hu1savhuj9p98879143sc.apps.googleusercontent.com';
+const DATA_TITLE = 'Семейный бюджет — данные';
+const TX_HEAD = ['id','дата','тип','кошелёк','категория','подкатегория','сумма','комментарий','кошелёк 2'];
+const CLOUD = { id:null, token:null, exp:0, client:null, timer:null, status:'' };
+const hhmm = () => new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+function cloudStatus(text){ CLOUD.status = text; const el = document.getElementById('cloud-status'); if (el) el.textContent = text; }
+
+function initCloud(){
+  if (!GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com')) return;
+  if (!window.google || !google.accounts) { setTimeout(initCloud, 300); return; }
+  CLOUD.client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets',
+    callback: async (r) => {
+      if (r.error) { cloudStatus('Вход не выполнен: ' + r.error); return; }
+      CLOUD.token = r.access_token; CLOUD.exp = Date.now() + (r.expires_in - 60) * 1000;
+      try { localStorage.setItem('fb-signed', '1'); } catch(e){}
+      await syncNow(); render();
+    }
+  });
+  try { if (localStorage.getItem('fb-signed')) CLOUD.client.requestAccessToken({prompt:''}); } catch(e){}
+}
+function signIn(){ if (CLOUD.client) CLOUD.client.requestAccessToken({prompt:'select_account'}); }
+function signOut(){
+  if (CLOUD.token) { try { google.accounts.oauth2.revoke(CLOUD.token, () => {}); } catch(e){} }
+  CLOUD.token = null; CLOUD.id = null;
+  try { localStorage.removeItem('fb-signed'); } catch(e){}
+  render();
+}
+
+async function api(url, opts = {}){
+  if (!CLOUD.token || Date.now() > CLOUD.exp) throw new Error('нужен вход');
+  const r = await fetch(url, {...opts, headers:{'Authorization':'Bearer '+CLOUD.token, 'Content-Type':'application/json'}});
+  if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0,120));
+  return r.json();
+}
+// Таблица пользователя: ищем свою (drive.file видит только созданные этим приложением), иначе создаём
+async function findOrCreateDoc(){
+  if (CLOUD.id) return CLOUD.id;
+  const q = encodeURIComponent(`name='${DATA_TITLE}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`);
+  const found = await api(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+  if (found.files && found.files.length) CLOUD.id = found.files[0].id;
+  else {
+    const c = await api('https://sheets.googleapis.com/v4/spreadsheets', {method:'POST', body: JSON.stringify({
+      properties:{title: DATA_TITLE}, sheets:[{properties:{title:'Операции'}},{properties:{title:'Настройки'}}]})});
+    CLOUD.id = c.spreadsheetId;
+  }
+  return CLOUD.id;
+}
+// Возвращает true, если в таблице уже были данные (тогда берём их); false — таблица пустая
+async function pullCloud(){
+  const id = await findOrCreateDoc();
+  const r = await api(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchGet?ranges=${encodeURIComponent('Настройки!A1')}&ranges=${encodeURIComponent('Операции!A2:I')}`);
+  const cfg = r.valueRanges[0].values && r.valueRanges[0].values[0] && r.valueRanges[0].values[0][0];
+  if (!cfg) return false;
+  const txs = (r.valueRanges[1].values || []).map(x => {
+    const [tid, d, t, w, c, src, a, n, w2] = x;
+    const o = {id:String(tid), d, t: t==='exp' ? 'exp' : t==='inc' ? 'inc' : 'tr', w: w||'', a: parseFloat(a)||0, n: n||''};
+    if (o.t === 'exp') o.c = c; else if (o.t === 'inc') o.src = src; else o.w2 = w2;
+    return o;
+  });
+  const s = JSON.parse(cfg);
+  S = {...S, ...s, txs};
+  try { localStorage.setItem(STORE, JSON.stringify(S)); } catch(e){}
+  return true;
+}
+async function pushCloud(){
+  const id = await findOrCreateDoc();
+  const rows = S.txs.map(t => [t.id, t.d, t.t, t.w||'', t.t==='exp' ? (t.c||'') : '', t.t==='inc' ? (t.src||'') : '', t.a, t.n||'', t.t==='tr' ? (t.w2||'') : '']);
+  const cfg = JSON.stringify({v:S.v, plan:S.plan, goals:S.goals, opening:S.opening, debts:S.debts, debtPerPayment:S.debtPerPayment});
+  await api(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchClear`, {method:'POST', body: JSON.stringify({ranges:['Операции!A2:I']})});
+  await api(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchUpdate`, {method:'POST', body: JSON.stringify({
+    valueInputOption:'RAW', data:[{range:'Операции!A1', values:[TX_HEAD, ...rows]}, {range:'Настройки!A1', values:[[cfg]]}]})});
+}
+async function syncNow(){
+  if (!CLOUD.token) return;
+  cloudStatus('Синхронизация…');
+  try {
+    const had = await pullCloud();
+    if (!had) await pushCloud();
+    cloudStatus('Синхронизировано · ' + hhmm());
+  } catch(e) { cloudStatus('Ошибка синхронизации: ' + e.message); }
+}
+// Отложенная отправка, чтобы не слать запрос на каждое нажатие
+function syncPush(){
+  if (!CLOUD.token) return;
+  clearTimeout(CLOUD.timer);
+  CLOUD.timer = setTimeout(() => {
+    cloudStatus('Сохраняю…');
+    pushCloud().then(() => cloudStatus('Сохранено · ' + hhmm())).catch(e => cloudStatus('Ошибка: ' + e.message));
+  }, 1500);
+}
+
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  lines.shift();
+  return lines.map(l => l.split(';').map(s => s.replace(/^"|"$/g,'').trim()));
+}
+function fromCSV(rows){
+  const out = [];
+  rows.forEach((f,i) => {
+    const [type, ds, w, c, sub, amtS, , , , note] = f;
+    if (!ds || !amtS) return;
+    const [dd,mm,yy] = ds.split('.');
+    const d = `${yy}-${mm}-${dd}`;
+    const a = parseFloat(amtS);
+    if (!isFinite(a)) return;
+    if (type === 'Расход') out.push({id:'x'+i, t:'exp', d, w:WALLET_MAP[w]||w, c:CAT_MAP[c.trim()]||c.trim(), a, n:note||''});
+    else if (type === 'Доход') out.push({id:'x'+i, t:'inc', d, w:WALLET_MAP[w]||w, src: c.trim().startsWith('Моя') ? 'Рита' : 'Никита', a, n:note||''});
+    else if (type === 'Перевод') out.push({id:'x'+i, t:'tr', d, w:WALLET_MAP[w]||w, w2:WALLET_MAP[c]||c, a, n:note||''});
+  });
+  return out;
+}
+function netFor(wallet, txs, untilISO){
+  let net = 0;
+  txs.forEach(t => {
+    if (untilISO && t.d > untilISO) return;
+    if (t.t==='exp' && t.w===wallet) net -= t.a;
+    if (t.t==='inc' && t.w===wallet) net += t.a;
+    if (t.t==='tr') { if (t.w===wallet) net -= t.a; if (t.w2===wallet) net += t.a; }
+  });
+  return net;
+}
+function seed(){
+  const txs = fromCSV(parseCSV(CSV_SEED));
+  const opening = {};
+  WALLETS.forEach(w => { opening[w] = (WALLET_TARGET_25_10[w]||0) - netFor(w, txs, '2026-10-25'); });
+  return { v:2, txs, opening, plan: JSON.parse(JSON.stringify(PLAN_DEFAULT)), goals: JSON.parse(JSON.stringify(GOALS_DEFAULT)), debts: [], debtPerPayment: 15000 };
+}
+
+// ---------- calculations ----------
+function planOf(m){ return (S.plan[m] ||= {start: monthStart(m), exp:{}, inc:{}}); }
+function factExp(m){
+  const p = S.plan[m]; const from = (p && p.start) || monthStart(m); const to = monthEnd(m);
+  const r = {}; ALL_EXP.forEach(c => r[c]=0);
+  S.txs.forEach(t => { if (t.t==='exp' && t.d>=from && t.d<=to) r[t.c] = (r[t.c]||0) + t.a; });
+  return r;
+}
+function factInc(m){
+  const r = {Рита:0, Никита:0, Долг:0, Прочее:0};
+  S.txs.forEach(t => { if (t.t==='inc' && mKey(t.d)===m) r[t.src] = (r[t.src]||0) + t.a; });
+  return r;
+}
+function planInc(m){ return (S.plan[m] && S.plan[m].inc) || {}; }
+function planExp(m){ return (S.plan[m] && S.plan[m].exp) || {}; }
+function sum(o){ return Object.values(o).reduce((a,b)=>a+(b||0),0); }
+function balance(w){ return (S.opening[w]||0) + netFor(w, S.txs); }
+function dayDiff(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+// Средний расход в день за период факта и расход за сегодня
+function dailyStats(m, spent){
+  const today = todayISO();
+  const from = (S.plan[m] && S.plan[m].start) || monthStart(m);
+  const end = mKey(today) === m ? today : monthEnd(m);
+  const days = (from <= end) ? dayDiff(from, end) + 1 : 0;
+  // В среднем учитываем только траты до 10 000 ₽ включительно; крупные не входят
+  const small = S.txs.filter(t => t.t==='exp' && t.d>=from && t.d<=end && t.a<=10000).reduce((a,t)=>a+t.a,0);
+  const avg = days > 0 ? small / days : 0;
+  const todaySpent = S.txs.filter(t => t.t==='exp' && t.d===today).reduce((a,t)=>a+t.a,0);
+  return { days, avg, todaySpent, today };
+}
+function recentTx(m){ return S.txs.filter(t => mKey(t.d)===m).sort((a,b)=> b.d.localeCompare(a.d) || (b.id>a.id?1:-1)); }
+
+// ---------- rendering ----------
+function setTab(t){ UI.tab = t; render(); window.scrollTo(0,0); }
+function monthSwitch(key){
+  return `<div class="switch"><button onclick="shiftMonth('${key}',-1)">‹</button><span style="font-weight:900;font-size:15px">${monthLabel(UI[key]||UI.month)}</span><button onclick="shiftMonth('${key}',1)">›</button></div>`;
+}
+function shiftMonth(key,k){ UI[key] = addMonth(UI[key]||UI.month, k); render(); }
+
+function renderHome(){
+  const m = UI.month;
+  const fe = factExp(m), pe = planExp(m), fi = factInc(m), pi = planInc(m);
+  const spent = sum(fe), planSpent = sum(pe), got = sum(fi), planGot = sum(pi);
+  const dev = spent - planSpent;
+  const pct = planSpent ? Math.round(spent/planSpent*100) : 0;
+  const start = S.plan[m]?.start || monthStart(m);
+  const ds = dailyStats(m, spent);
+  const tips = [];
+  if (planSpent && spent > planSpent) tips.push(`Расход выше плана на ${fmt(dev)} ₽. Самая большая разница — ${topOverCat(m) || 'в статьях'}.`);
+  else if (planSpent) tips.push(`Расход в рамках плана, осталось ${fmt(planSpent-spent)} ₽.`);
+  if (planGot && got < planGot) tips.push(`Доход пока ниже плана на ${fmt(planGot-got)} ₽.`);
+  if (planGot && got >= planGot) tips.push('Доход по плану или выше.');
+  const debtOpen = S.debts.reduce((a,d)=>a+(d.left||0),0);
+  if (debtOpen>0) tips.push(`Долг к возврату: ${fmt(debtOpen)} ₽ — платежи идут в план 10-го и 25-го.`);
+  const wallets = WALLETS.map(w => `<div class="chip"><small>${esc(w)}</small><b>${fmt(balance(w))} ₽</b></div>`).join('');
+  const goals = S.goals.map(g => {
+    const p = g.target ? Math.min(100, Math.round(g.saved/g.target*100)) : 0;
+    return `<div class="chip" style="border-color:${g.color};box-shadow:0 0 12px ${g.color}55"><small style="color:${g.color}">${esc(g.name)}</small><b>${fmt(g.saved)} / ${fmt(g.target)}</b><div class="bar"><div style="width:${p}%;background:${g.color}"></div></div></div>`;
+  }).join('');
+  const incTiles = `
+    <div class="tile" style="background:#F25CA0"><span style="font-size:10px;font-weight:800">ЗП Рита</span><b>${fmt(fi.Рита)}</b><div class="pl">план ${fmt(pi.Рита||0)}</div></div>
+    <div class="tile" style="background:#4DA3FF"><span style="font-size:10px;font-weight:800">ЗП Никита</span><b>${fmt(fi.Никита)}</b><div class="pl">план ${fmt(pi.Никита||0)}</div></div>
+    <div class="chip debt" style="text-align:left"><small style="color:#FFB98F">Долг</small><b style="font-size:12px">${fmt(debtOpen)}</b></div>`;
+  return `
+  <div class="eyebrow"><span>${esc(monthLabel(m)).toUpperCase()} · С ${start.slice(8)}.${start.slice(5,7)}</span></div>
+  <h1>Семья</h1>
+  ${monthSwitch('month')}
+  <div class="card">
+    <div class="row">
+      <div><div class="eyebrow" style="font-size:10px">ПОТРАЧЕНО</div><div style="font-size:22px;font-weight:900;color:#FF7A3D;margin-top:3px">${fmt(spent)} ₽</div><div class="muted">из плана ${fmt(planSpent)}</div></div>
+      <div style="text-align:right"><div class="eyebrow" style="font-size:10px;justify-content:flex-end">ПОЛУЧЕНО</div><div style="font-size:22px;font-weight:900;color:#FFC24A;margin-top:3px">${fmt(got)} ₽</div><div class="muted">план ${fmt(planGot)}</div></div>
+    </div>
+    <div class="bar"><div style="width:${Math.min(100,pct)}%;background:linear-gradient(90deg,#FF7A3D,#FFC24A)"></div></div>
+    <div class="row" style="margin-top:10px;font-size:12px;font-weight:700;color:#FFD9BF"><span>${planSpent ? (dev>0?'Перерасход':'Экономия')+' '+(dev>0?'+':'')+fmt(dev)+' ₽ · '+(planSpent?Math.round(dev/planSpent*100):0)+'%' : 'Плана на этот месяц нет'}</span><span style="color:#FFC24A">${planSpent ? 'осталось '+fmt(Math.max(0,planSpent-spent))+' ₽' : ''}</span></div>
+  </div>
+  <div class="grid2" style="margin-top:12px">
+    <div class="chip" style="border-color:#FF7A3D;box-shadow:0 0 12px rgba(255,122,61,.3)"><small style="color:#FFB98F">В СРЕДНЕМ В ДЕНЬ</small><b>${fmt(ds.avg)} ₽</b><div class="muted" style="font-size:10px">без трат выше 10 000 · ${ds.days} дн.</div></div>
+    <div class="chip" style="border-color:#FFC24A;box-shadow:0 0 12px rgba(255,194,74,.3)"><small style="color:#FFC24A">СЕГОДНЯ</small><b>${fmt(ds.todaySpent)} ₽</b><div class="muted" style="font-size:10px">${ds.today.slice(8)}.${ds.today.slice(5,7)} · расход</div></div>
+  </div>
+  <div class="sec">Доходы <small>факт сверху, план внизу</small></div>
+  <div class="grid3">${incTiles}</div>
+  <div class="sec">Кошельки</div>
+  <div class="grid2">${wallets}</div>
+  <div class="sec">Копим</div>
+  <div class="grid2">${goals}</div>
+  <div class="card gold" style="margin-top:14px">
+    <div class="eyebrow" style="font-size:10px">СОВЕТЫ</div>
+    ${tips.map(t=>`<div style="font-size:13px;margin-top:6px;line-height:1.45">• ${esc(t)}</div>`).join('')}
+  </div>`;
+}
+function topOverCat(m){
+  const fe = factExp(m), pe = planExp(m); let best=null, bv=0;
+  ALL_EXP.forEach(c => { const d=(fe[c]||0)-(pe[c]||0); if (d>bv){bv=d;best=c;} });
+  return best ? `${best} (+${fmt(bv)} ₽)` : null;
+}
+
+function renderOps(){
+  const m = UI.month;
+  const incSrc = [['Рита','inc','#F25CA0'],['Никита','inc2','#4DA3FF'],['Долг','debt','#FF7A3D']];
+  const srcChips = incSrc.map(([n,cls])=>`<div class="chip ${cls==='inc'?'inc':cls==='inc2'?'inc2':'debt'}" data-drag="inc" data-id="${esc(n)}"><small style="${cls==='debt'?'color:#FFB98F':''}">${cls==='debt'?'взять в доход':'доход'}</small><b>${esc(n==='Долг'?'Долг':'ЗП '+n)}</b></div>`).join('');
+  const walletChips = WALLETS.map(w=>`<div class="chip" data-drag="wallet" data-id="${esc(w)}" data-drop="wallet:${esc(w)}"><small>${esc(w)}</small><b>${fmt(balance(w))} ₽</b></div>`).join('');
+  const catChips = ALL_EXP.map(c=>`<div class="chip" data-drop="cat:${esc(c)}" style="padding:7px 8px"><small>${esc(c)}</small></div>`).join('');
+  const list = recentTx(m).slice(0,40).map(t => {
+    const label = t.t==='exp' ? `${t.c}` : t.t==='inc' ? `Доход · ${t.src==='Долг'?'Долг':'ЗП '+t.src}` : `${t.w} → ${t.w2}`;
+    const sign = t.t==='exp' ? '−' : t.t==='inc' ? '+' : '';
+    const col = t.t==='exp' ? '#FF7A3D' : t.t==='inc' ? '#FFC24A' : '#B9AEA4';
+    return `<div class="tx"><div>${esc(label)}<span class="s">${t.d.slice(8)}.${t.d.slice(5,7)} · ${esc(t.t==='exp'?t.w:t.t==='inc'?t.w:'')} ${esc(t.n||'')}</span></div><div style="text-align:right;white-space:nowrap"><b style="color:${col}">${sign}${fmt(t.a)} ₽</b><div><button class="btn ghost small" style="margin-top:4px" onclick="delTx('${t.id}')">удалить</button></div></div></div>`;
+  }).join('') || '<div class="muted" style="margin-top:8px">Операций в этом месяце нет.</div>';
+  return `
+  <div class="eyebrow"><span>ОПЕРАЦИИ</span><span></span></div>
+  <h1>Перенос</h1>
+  <div class="hint" style="margin-top:-4px">Зажмите иконку и перетащите на кошелёк или категорию — откроется быстрый ввод.</div>
+  <div class="sec">Доходы</div>
+  <div class="grid3">${srcChips}</div>
+  <div class="sec">Кошельки</div>
+  <div class="grid2">${walletChips}</div>
+  <div class="sec">Категории <small>сюда — расход</small></div>
+  <div class="grid3">${catChips}</div>
+  <div class="row" style="margin-top:14px"><button class="btn" onclick="openSheet(null,null)">+ Операция</button><span class="muted">${esc(monthLabel(m))}</span></div>
+  <div class="sec">Операции</div>
+  <div class="card" style="padding:4px 14px">${list}</div>`;
+}
+
+function renderPlan(){
+  const m = UI.planMonth || UI.month;
+  const fe = factExp(m), pe = planExp(m);
+  const p = S.plan[m] || {start:monthStart(m)};
+  const rows = ALL_EXP.map(c => {
+    const f = fe[c]||0, pl = pe[c]||0, d = f-pl;
+    const col = d>0 ? '#FF4D2E' : d<0 ? '#4ADE80' : '#B9AEA4';
+    const pc = pl ? (d/pl*100).toFixed(0)+'%' : '—';
+    return `<tr><td class="l">${esc(c)}</td><td>${fmt(f)}</td><td><input type="number" inputmode="numeric" value="${pl}" onchange="setPlan('${esc(m)}','${esc(c)}',this.value)"></td><td class="${d>0?'pos':d<0?'neg':''}" data-dev="${esc(c)}">${d>0?'+':d<0?'−':''}${fmt(Math.abs(d))}<br><span style="font-size:10px">${pl&&d>0?'+':''}${pc}</span></td></tr>`;
+  }).join('');
+  const tf = sum(fe), tp = sum(pe), td = tf-tp;
+  return `
+  <div class="eyebrow"><span>РАСХОДЫ · ${esc(monthLabel(m)).toUpperCase()}</span><span>ФАКТ / ПЛАН</span></div>
+  <h1>Таблица</h1>
+  ${monthSwitch('planMonth')}
+  <div class="card">
+    <div class="row" style="font-size:12px;color:#FFD9BF;font-weight:700"><span>Факт</span><span>План</span><span>Отклонение</span></div>
+    <div class="row" style="font-size:15px;font-weight:900;margin-top:4px"><span>${fmt(tf)}</span><span>${fmt(tp)}</span><span class="${td>0?'pos':'neg'}">${td>0?'+':'−'}${fmt(Math.abs(td))} · ${tp?(td/tp*100).toFixed(0)+'%':'—'}</span></div>
+  </div>
+  <div class="card blue" style="padding:6px 8px">
+    <table>
+      <thead><tr><th class="l">Категория</th><th>Факт</th><th>План</th><th>Откл.</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <div class="hint">Факт считается с даты начала плана (${esc(p.start)}). Плановые суммы редактируются в полях — всё пересчитывается сразу. Оранжевый — перерасход, синий — экономия.</div>
+  <div class="sec">Доход по плану <small>редактируется</small></div>
+  <div class="card" style="padding:8px 12px">
+    <div class="row" style="margin:6px 0"><span>ЗП Рита</span><input type="number" value="${planInc(m).Рита||0}" style="width:120px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;padding:6px;text-align:right" onchange="setInc('${esc(m)}','Рита',this.value)"></div>
+    <div class="row" style="margin:6px 0"><span>ЗП Никита</span><input type="number" value="${planInc(m).Никита||0}" style="width:120px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;padding:6px;text-align:right" onchange="setInc('${esc(m)}','Никита',this.value)"></div>
+  </div>`;
+}
+function setPlan(m,c,v){ planOf(m).exp[c] = parseFloat(v)||0; save(); render(); }
+function setInc(m,p,v){ planOf(m).inc[p] = parseFloat(v)||0; save(); render(); }
+
+function donut(items){
+  const total = items.reduce((a,b)=>a+b[1],0) || 1;
+  const R=62, C=2*Math.PI*R; let cum=0, svg=`<svg viewBox="0 0 200 200" width="148" height="148"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="26"/>`;
+  items.forEach(([n,v],i) => {
+    const L = v/total*C;
+    svg += `<circle cx="100" cy="100" r="${R}" fill="none" stroke="${COLORS[i%COLORS.length]}" stroke-width="26" stroke-dasharray="${Math.max(L-2,0).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-cum).toFixed(2)}" transform="rotate(-90 100 100)"/>`;
+    cum += L;
+  });
+  svg += `<text x="100" y="96" text-anchor="middle" fill="#B9AEA4" font-size="10" font-weight="700">ВСЕГО</text><text x="100" y="116" text-anchor="middle" fill="#fff" font-size="15" font-weight="900">${fmt(total)} ₽</text></svg>`;
+  return svg;
+}
+function monthCats(m){
+  const fe = factExp(m); const hasFact = sum(fe)>0;
+  const items = hasFact ? ALL_EXP.map(c=>[c, fe[c]||0]).filter(x=>x[1]>0) : Object.entries(planExp(m)).filter(x=>x[1]>0);
+  return {items: items.sort((a,b)=>b[1]-a[1]), fact: hasFact};
+}
+function renderStats(){
+  const months = []; for (let i=-1;i<=6;i++) months.push(addMonth('2026-10', i));
+  // bars: income and expense per month (fact when present, plan otherwise)
+  const W=350,H=190,top=10,base=H-26,mx=260000;
+  const y = v => base-(v/mx)*(base-top);
+  const slot=W/months.length, bw=9;
+  let bars = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">`;
+  [0,100000,200000].forEach(g => bars += `<line x1="0" x2="${W}" y1="${y(g)}" y2="${y(g)}" stroke="rgba(255,255,255,.1)"/><text x="0" y="${y(g)-3}" fill="#B9AEA4" font-size="9">${g/1000} тыс</text>`);
+  months.forEach((m,i) => {
+    const cx = slot*i+slot/2;
+    const fi = sum(factInc(m)), pi = sum(planInc(m));
+    const fe = sum(factExp(m)), pe = sum(planExp(m));
+    [[fi,pi,'#4DA3FF'],[fe,pe,'#FF7A3D']].forEach(([f,p,col],j) => {
+      const x = j===0 ? cx-bw-1 : cx+1;
+      if (f) bars += `<rect x="${x}" y="${y(f)}" width="${bw}" height="${Math.max(0,base-y(f))}" rx="2" fill="${col}"/>`;
+      else if (p) bars += `<rect x="${x}" y="${y(p)}" width="${bw}" height="${Math.max(0,base-y(p))}" rx="2" fill="none" stroke="${col}" stroke-width="1.3" stroke-dasharray="3 2"/>`;
+    });
+    bars += `<text x="${cx}" y="${H-7}" fill="#FFD9BF" font-size="9" font-weight="700" text-anchor="middle">${RU_MONTHS[Number(m.slice(5))-1].slice(0,3)}</text>`;
+  });
+  bars += `<line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="rgba(255,255,255,.25)"/></svg>`;
+  const slides = months.map(m => {
+    const {items, fact} = monthCats(m);
+    const legend = items.map(([n,v],i)=>`<div class="row" style="font-size:11px;padding:3px 0"><span style="color:#FFE7D6;font-weight:700"><i class="dot" style="background:${COLORS[i%COLORS.length]}"></i>${esc(n)}</span><span style="font-weight:800">${fmt(v)} <span class="muted">· ${Math.round(v/(items.reduce((a,b)=>a+b[1],0)||1)*100)}%</span></span></div>`).join('') || '<div class="muted">Нет данных</div>';
+    return `<div class="slide"><div class="card" style="margin-top:0;padding:12px">
+      <div class="row"><span style="font-size:17px;font-weight:900">${esc(monthLabel(m))}</span><span style="font-size:10px;font-weight:800;color:#120806;background:${fact?'#FFC24A':'#4DA3FF'};border-radius:8px;padding:3px 7px">${fact?'ФАКТ':'ПЛАН'}</span></div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:6px"><div style="flex:none">${donut(items)}</div><div style="flex:1;min-width:0">${legend}</div></div>
+    </div></div>`;
+  }).join('');
+  return `
+  <div class="eyebrow"><span>СТАТИСТИКА</span><span>ФАКТ / ПЛАН</span></div>
+  <h1>По месяцам</h1>
+  <div class="card blue" style="margin-top:6px;padding:8px 10px 4px">
+    <div class="row" style="font-size:10.5px;font-weight:700;color:#FFD9BF;justify-content:flex-start;gap:12px"><span><i class="dot" style="background:#4DA3FF"></i>Доход</span><span><i class="dot" style="background:#FF7A3D"></i>Расход</span><span class="muted">пунктир — план</span></div>
+    ${bars}
+  </div>
+  <div class="sec">Расходы по категориям <small>свайп влево и вправо</small></div>
+  <div class="swipe" id="swipe">${slides}</div>`;
+}
+
+function renderSettings(){
+  return `
+  <div class="eyebrow"><span>НАСТРОЙКИ</span><span></span></div>
+  <h1>Данные</h1>
+  <div class="card">
+    <div style="font-weight:800">Импорт выгрузки CSV</div>
+    <div class="hint">Добавит только новые операции (повторы пропускаются).</div>
+    <input type="file" accept=".csv,text/csv" onchange="importCSV(this.files[0])" style="margin-top:10px;color:#FFD9BF">
+  </div>
+  <div class="card">
+    <div style="font-weight:800">Аккаунт</div>
+    <div class="muted" id="cloud-status" style="margin-top:6px;font-size:12px">${CLOUD.token ? esc(CLOUD.status) : 'Не вошли: данные только на этом устройстве'}</div>
+    <div class="row" style="margin-top:8px">${CLOUD.token
+      ? '<button class="btn ghost small" onclick="signOut()">Выйти</button>'
+      : '<button class="btn small" onclick="signIn()">Войти через Google</button>'}</div>
+  </div>
+  <div class="card">
+    <div style="font-weight:800">Цели</div>
+    ${S.goals.map((g,i)=>`<div class="row" style="margin-top:8px;font-size:13px"><span>${esc(g.name)}</span><span><input type="number" value="${g.saved}" style="width:90px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;padding:5px;text-align:right" onchange="setGoal(${i},this.value)"> / ${fmt(g.target)}</span></div>`).join('')}
+  </div>
+  <div class="card">
+    <div style="font-weight:800">Долги</div>
+    <div class="hint">Взять в доход можно перетащив «Долг» на кошелёк. Возврат идёт в план двумя платежами в месяц.</div>
+    <div class="row" style="margin-top:8px;font-size:13px"><span>Платёж 10-го и 25-го</span><input type="number" value="${S.debtPerPayment}" style="width:110px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;padding:5px;text-align:right" onchange="S.debtPerPayment=parseFloat(this.value)||0;save();render()"></div>
+    <div class="muted" style="margin-top:8px">Открытый долг: ${fmt(S.debts.reduce((a,d)=>a+(d.left||0),0))} ₽</div>
+  </div>
+  <div class="card">
+    <button class="btn ghost" onclick="resetAll()">Сбросить к выгрузке</button>
+    <div class="hint">Все данные на этом устройстве. Сброс вернёт стартовую выгрузку и план, введённые операции удалятся.</div>
+  </div>`;
+}
+function setGoal(i,v){ S.goals[i].saved = parseFloat(v)||0; save(); render(); }
+function resetAll(){ if (confirm('Сбросить все данные к стартовой выгрузке?')) { S = seed(); save(); render(); } }
+
+const TABS = [['home','Главная'],['ops','Операции'],['plan','Расходы'],['stats','Статистика'],['set','Настройки']];
+function renderNav(){
+  document.getElementById('nav').innerHTML = TABS.map(([k,l])=>`<button class="${UI.tab===k?'on':''}" onclick="setTab('${k}')">${l}</button>`).join('');
+}
+function render(){
+  const v = document.getElementById('view');
+  const scrollLeft = document.getElementById('swipe') ? document.getElementById('swipe').scrollLeft : 0;
+  v.innerHTML = ({home:renderHome,ops:renderOps,plan:renderPlan,stats:renderStats,set:renderSettings})[UI.tab]();
+  if (UI.tab==='stats') { const sw=document.getElementById('swipe'); if (sw) sw.scrollLeft = scrollLeft; }
+  renderNav();
+  bindDrag();
+}
+
+// ---------- transactions ----------
+function delTx(id){ S.txs = S.txs.filter(t=>t.id!==id); save(); render(); }
+function uid(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+let SHEET = null;
+function openSheet(src, dst){
+  // src: {kind:'wallet'|'inc'|'debt', id}, dst: {kind:'wallet'|'cat', id}
+  let kind = 'exp', from = '', to = '';
+  if (src && dst) {
+    if (src.kind==='wallet' && dst.kind==='cat') { kind='exp'; from=src.id; to=dst.id; }
+    else if (src.kind==='wallet' && dst.kind==='wallet' && src.id!==dst.id) { kind='tr'; from=src.id; to=dst.id; }
+    else if (src.kind==='inc' && dst.kind==='wallet') { kind='inc'; from=src.id; to=dst.id; }
+    else if (src.kind==='debt' && dst.kind==='wallet') { kind='debt'; from='Долг'; to=dst.id; }
+    else if (src.kind==='wallet' && dst.kind==='cat' && dst.id===DEBT_CAT) { kind='exp'; from=src.id; to=DEBT_CAT; }
+    else { toast('Так перенести нельзя'); return; }
+  }
+  SHEET = {kind, from, to, amount:'', date: todayISO(), note:''};
+  if (!src) { SHEET.kind='exp'; SHEET.from=WALLETS[0]; SHEET.to=CATS[0]; }
+  drawSheet();
+}
+function drawSheet(){
+  const k = SHEET.kind;
+  const title = k==='exp'?'Расход': k==='inc'?'Доход': k==='tr'?'Перевод': 'Долг в доход';
+  const opts = (arr,cur)=>arr.map(o=>`<option ${o===cur?'selected':''}>${esc(o)}</option>`).join('');
+  const toOpts = k==='exp' ? ALL_EXP : k==='inc' || k==='debt' ? WALLETS : WALLETS;
+  const fromOpts = k==='inc' ? ['Рита','Никита','Прочее'] : k==='debt' ? ['Долг'] : WALLETS;
+  const fromLabel = k==='inc' ? 'Источник' : k==='debt' ? 'Источник' : 'Откуда';
+  const toLabel = k==='exp' ? 'Категория' : 'Куда';
+  const amt = SHEET.amount || '0';
+  const keys = ['1','2','3','⌫','4','5','6','+','7','8','9','−','00','0',',','OK'];
+  const keyHtml = keys.map(x=>`<button class="${'+−⌫OK'.includes(x)?'op':''}" onclick="keyTap('${x}')">${x}</button>`).join('');
+  document.getElementById('sheet').innerHTML = `
+    <div class="row"><span style="font-size:16px;font-weight:900">${title}</span><button class="btn ghost small" onclick="closeSheet()">Закрыть</button></div>
+    <div style="margin-top:10px">
+      <div class="muted" style="margin-bottom:4px">${fromLabel}</div>
+      <select onchange="SHEET.from=this.value">${opts(fromOpts,SHEET.from)}</select>
+      <div class="muted" style="margin:10px 0 4px">${toLabel}</div>
+      <select onchange="SHEET.to=this.value">${opts(toOpts,SHEET.to)}</select>
+      ${k==='exp'||k==='debt'?'':''}
+    </div>
+    <div style="text-align:center;margin-top:12px"><div class="muted" style="font-size:11px;letter-spacing:1px;font-weight:700">СУММА</div><div style="font-size:42px;font-weight:900;letter-spacing:-1px">${fmt(parseFloat(String(amt).replace(',','.'))||0)} <span class="muted" style="font-size:22px">₽</span></div></div>
+    <div class="grid2" style="margin-top:8px">
+      <input type="date" value="${SHEET.date}" onchange="SHEET.date=this.value">
+      <input type="text" placeholder="Комментарий" value="${esc(SHEET.note)}" oninput="SHEET.note=this.value">
+    </div>
+    <div class="key">${keyHtml}</div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="saveSheet()">Записать</button>`;
+  document.getElementById('sheetWrap').style.display='block';
+}
+function keyTap(x){
+  let a = String(SHEET.amount||'');
+  if (x==='⌫') a = a.slice(0,-1);
+  else if (x==='OK') return saveSheet();
+  else if (x==='+'||x==='−') return; // single amount only
+  else if (x===',') { if (!a.includes(',')) a += ','; }
+  else a += x;
+  SHEET.amount = a;
+  drawSheet();
+}
+function closeSheet(){ document.getElementById('sheetWrap').style.display='none'; SHEET=null; }
+function saveSheet(){
+  const a = parseFloat(String(SHEET.amount).replace(',','.'));
+  if (!a) { toast('Введите сумму'); return; }
+  const k = SHEET.kind;
+  if (k==='exp') S.txs.push({id:uid(),t:'exp',d:SHEET.date,w:SHEET.from,c:SHEET.to,a,n:SHEET.note});
+  else if (k==='inc') S.txs.push({id:uid(),t:'inc',d:SHEET.date,w:SHEET.to,src:SHEET.from,a,n:SHEET.note});
+  else if (k==='tr') S.txs.push({id:uid(),t:'tr',d:SHEET.date,w:SHEET.from,w2:SHEET.to,a,n:SHEET.note});
+  else if (k==='debt') {
+    S.txs.push({id:uid(),t:'inc',d:SHEET.date,w:SHEET.to,src:'Долг',a,n:SHEET.note||'Долг'});
+    S.debts.push({id:uid(),date:SHEET.date,amount:a,left:a});
+  }
+  save(); closeSheet(); render(); toast('Записано');
+}
+function toast(msg){
+  let t = document.getElementById('toast');
+  if (!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#1E1D1A;border:1.5px solid #FF7A3D;color:#fff;padding:10px 16px;border-radius:14px;z-index:60;font-size:13px;font-weight:700'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display='block';
+  clearTimeout(t._h); t._h = setTimeout(()=>t.style.display='none', 1600);
+}
+
+// ---------- drag & drop (touch + mouse) ----------
+function bindDrag(){
+  document.querySelectorAll('[data-drag]').forEach(el => {
+    el.addEventListener('pointerdown', ev => startDrag(ev, el));
+  });
+}
+function startDrag(ev, el){
+  const sx = ev.clientX, sy = ev.clientY; let moved=false;
+  const kindRaw = el.dataset.drag; const id = el.dataset.id;
+  const src = kindRaw==='wallet' ? {kind:'wallet', id} : kindRaw==='inc' ? (id==='Долг' ? {kind:'debt', id} : {kind:'inc', id}) : null;
+  const ghost = document.getElementById('ghost');
+  const label = id.length>6 ? id.slice(0,6) : id;
+  const onMove = e => {
+    if (!moved && Math.hypot(e.clientX-sx, e.clientY-sy) < 8) return;
+    if (!moved) { moved=true; ghost.textContent = label; ghost.style.display='flex'; el.style.opacity='.5'; }
+    ghost.style.left = e.clientX+'px'; ghost.style.top = (e.clientY-36)+'px';
+    document.querySelectorAll('.dropover').forEach(x=>x.classList.remove('dropover'));
+    const t = dropTargetAt(e.clientX, e.clientY-36);
+    if (t) t.classList.add('dropover');
+  };
+  const onUp = e => {
+    window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp);
+    ghost.style.display='none'; el.style.opacity='';
+    document.querySelectorAll('.dropover').forEach(x=>x.classList.remove('dropover'));
+    if (!moved || !src) return;
+    const t = dropTargetAt(e.clientX, e.clientY-36);
+    if (!t) return;
+    const [dk, did] = t.dataset.drop.split(':');
+    const dst = {kind: dk==='wallet'?'wallet':'cat', id: did};
+    openSheet(src, dst);
+  };
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+}
+function dropTargetAt(x,y){
+  const el = document.elementFromPoint(x,y); if (!el) return null;
+  return el.closest('[data-drop]');
+}
+
+// ---------- CSV import ----------
+function importCSV(file){
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const rows = parseCSV(String(r.result));
+    const incoming = fromCSV(rows);
+    const key = t => [t.d,t.t,t.w,t.w2||'',t.c||'',t.src||'',t.a,t.n].join('|');
+    const have = new Set(S.txs.map(key));
+    let added=0;
+    incoming.forEach(t => { if (!have.has(key(t))) { t.id = uid(); S.txs.push(t); added++; } });
+    save(); render(); toast(`Добавлено: ${added}`);
+  };
+  r.readAsText(file, 'utf-8');
+}
+
+// ---------- boot ----------
+(function boot(){
+  S = load();
+  if (!S || !S.txs) { S = seed(); save(); }
+  if (S.v !== 2) { // миграция: новые план и копилки, операции сохраняются
+    S.plan = JSON.parse(JSON.stringify(PLAN_DEFAULT));
+    S.goals = JSON.parse(JSON.stringify(GOALS_DEFAULT));
+    S.v = 2; save();
+  }
+  if (!S.debts) S.debts = [];
+  if (!S.debtPerPayment) S.debtPerPayment = 15000;
+  render();
+  initCloud();
+})();
+</script>
+</body>
+</html>
